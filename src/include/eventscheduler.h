@@ -18,13 +18,15 @@ class EventScheduler
 public:
     EventScheduler(double rho);
     ~EventScheduler();
+        
+    void    initArrival(std::vector<Packet*>& packetQueue);
+    void    initDeparture(std::vector<Packet*>& packetQueue);
     
-    void            initObserver();
-    unsigned long   initArrival();
-    void            initDeparture(unsigned long firstArrivalPacketPosition);
+    void    initObserver();
+    void    initPackets();
     
-    void init();
-    void getStats();
+    void    init();
+    void    getStats();
 
 private:
     double               rho;

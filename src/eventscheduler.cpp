@@ -54,37 +54,41 @@ void EventScheduler::initObserver()
     while(arrivalTime < simulationTime);    
 }
 
-unsigned long EventScheduler::initArrival()
+void EventScheduler::initPackets()
 {
-    double arrivalTime = 0;
-    
-    // Get starting point of arrival list before start
-    unsigned long firstArrivalPacketPosition = eventQueue.size();
-    
+    std::vector<Packet*> packetQueue;
+
+    initArrival(packetQueue);
+    initDeparture(packetQueue);
+
+    eventQueue.insert(eventQueue.end(), packetQueue.begin(), packetQueue.end());
+}
+
+void EventScheduler::initArrival(std::vector<Packet*>& packetQueue)
+{
+    double arrivalTime = 0;    
     Random::seedRand();
     
     do
     {
-        Packet* event = new Packet(Arrival, arrivalTime, Random::getInstance().randValue(1.0/L));
-        eventQueue.push_back(event);
+        Packet* packet = new Packet(Arrival, arrivalTime, Random::getInstance().randValue(1.0/L));
+        packetQueue.push_back(packet);
         arrivalTime += Random::getInstance().randValue(lambda);
     }
     while(arrivalTime < simulationTime);
-
-    return firstArrivalPacketPosition;
 }
 
-void EventScheduler::initDeparture(unsigned long firstArrivalPacketPosition)
+void EventScheduler::initDeparture(std::vector<Packet*>& packetQueue)
 {
-    unsigned long   arrivalPos = firstArrivalPacketPosition;
+    unsigned long   arrivalPos = 0;
     double          latestDeparture = 0, serviceTime;
 
-    Packet*         arrival = dynamic_cast<Packet*>(eventQueue[arrivalPos]);
+    Packet*         arrival = packetQueue[arrivalPos];
     PacketType      nextPacket;
     
     do
     {
-        Packet* event;
+        Packet* packet;
         double  departureTime;
 
         serviceTime = arrival->packetSize()/C;
@@ -98,13 +102,13 @@ void EventScheduler::initDeparture(unsigned long firstArrivalPacketPosition)
             departureTime = latestDeparture + serviceTime;
         }
         
-        event = new Packet(Departure, departureTime, arrival->packetSize());
-        eventQueue.push_back(event);
+        packet = new Packet(Departure, departureTime, arrival->packetSize());
+        packetQueue.push_back(packet);
         
         latestDeparture = departureTime;
         arrivalPos++;
         
-        arrival = dynamic_cast<Packet*>(eventQueue[arrivalPos]);
+        arrival = packetQueue[arrivalPos];
     }
     while(arrival->type() == Arrival);
 }
@@ -114,8 +118,7 @@ void EventScheduler::init()
     unsigned long firstArrivalPacketPosition;
 
     initObserver();
-    firstArrivalPacketPosition = initArrival();
-    initDeparture(firstArrivalPacketPosition);
+    initPackets();
     
     // Sort events following time order
     std::sort(eventQueue.begin(), eventQueue.end(), compareEvent);
