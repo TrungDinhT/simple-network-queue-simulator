@@ -1,6 +1,7 @@
-CXX=g++
+CXX = g++
 RM = rm -f
-CPPFLAGS=-I ./src/include
+INCLUDE = -I ./src/include 
+CPPFLAGS = --std=c++11 $(INCLUDE)
 
 HEADERS=$(shell ls src/include/)
 SRCS=$(shell ls src/*.cpp)
