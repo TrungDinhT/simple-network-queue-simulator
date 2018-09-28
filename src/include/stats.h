@@ -7,6 +7,7 @@
 // System include
 #include <iostream>
 #include <vector>
+#include <queue>
 
 namespace lab1
 {
@@ -18,6 +19,12 @@ public:
     ~Stats();
 
     void process(std::vector<Event*>& eventQueue, unsigned long queueLength);
+
+private:
+    void observerStats();
+    void infiniteQueuePacketStats(const Packet* packet);
+    void finiteQueuePacketStats(const Packet* packet, double& currentTime, 
+                                std::queue<double>& nextDepartures);    
 
 private:
     unsigned int    simulationTime;

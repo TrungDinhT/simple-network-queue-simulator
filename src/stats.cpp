@@ -27,68 +27,37 @@ Stats::~Stats()
 
 void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength)
 {
+    double currentTime;
+
+    std::queue<double> nextDepartures;
+    nextDepartures.push(0.0); // first packet arrived at 0
+
     this->queueLength = queueLength;
     
     while(!eventQueue.empty())
     {
         Event* event = eventQueue.back();
-        
+
+        currentTime = event->arrivalTime(); // = 0 == nextDeparture for first packet
+
         if(event->evtType() == Obs)
         {
-            nObs++;
-            if(nArv > nDep)
-            {
-                E_N += nArv - nDep;
-            }
-            else if(nArv == nDep)
-            {
-                nIdle++;
-            }
-            else
-            {
-                std::cerr << "ERROR: nArv < nDep \n";
-                exit(1);
-            }
+            observerStats();    
         }
         else
         {
             Packet* packet = dynamic_cast<Packet*>(event);
-            double  latestDeparture = 0;
             
-            if(queueLength == ULONG_MAX)
+            if(queueLength == ULONG_MAX) // Infinite queue
             {
-                if(packet->type() == Arrival)
-                {
-                    nArv++;
-                    E_T -= packet->arrivalTime();
-                }
-                else
-                {
-                    nDep++;
-                    E_T += packet->arrivalTime();
-                }
+                infiniteQueuePacketStats(packet);
             }
             else
             {
-                if((nArv - nDep) == queueLength)
-                {
-                    nLoss++;
-                }
-                else
-                {
-                    double serviceTime, departureTime;
-                    
-                    serviceTime = arrival->packetSize()/C;
-                    
-                    if(arrival->arrivalTime() + serviceTime >= latestDeparture + serviceTime)
-                    {
-                        departureTime = arrival->arrivalTime() + serviceTime;
-                    }
-                    else
-                    {
-                        departureTime = latestDeparture + serviceTime;
-                    }
-                }
+                /*
+                * Every packet is arrival here. 
+                */
+                finiteQueuePacketStats(packet, currentTime, nextDepartures);
             }
         }
 
@@ -98,6 +67,70 @@ void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength)
     
     E_T /= nDep;
     E_N /= nObs;
+}
+
+void Stats::observerStats()
+{
+    nObs++;
+    if(nArv > nDep)
+    {
+        E_N += nArv - nDep;
+    }
+    else if(nArv == nDep)
+    {
+        nIdle++;
+    }
+    else
+    {
+        std::cerr << "ERROR: nArv < nDep \n";
+        exit(1);
+    }
+}
+
+void Stats::infiniteQueuePacketStats(const Packet* packet)
+{
+    if(packet->type() == Arrival)
+    {
+        nArv++;
+        E_T -= packet->arrivalTime();
+    }
+    else
+    {
+        nDep++;
+        E_T += packet->arrivalTime();
+    }
+}
+
+void Stats::finiteQueuePacketStats(const Packet* packet, double& currentTime, std::queue<double>& nextDepartures)
+{
+    double nextDeparture;
+
+    while(currentTime > nextDeparture)
+    {
+        nextDeparture = nextDepartures.front();
+        nextDepartures.pop();
+        nDep++;
+        E_T += nextDeparture;
+    }
+
+    if((nArv - nDep) == queueLength) // queue full
+    {
+        nLoss++;
+    }
+    else // (nArv - nDep) < queueLength -> queue not full yet
+    {
+        nArv++;
+        E_T -= packet->arrivalTime();
+
+        if(packet->arrivalTime() + serviceTime >= nextDeparture + serviceTime)
+        {
+            nextDepartures.push(packet->arrivalTime() + packet->packetSize()/C);
+        }
+        else
+        {
+            nextDepartures.push(nextDeparture + packet->packetSize()/C);
+        }
+    }
 }
 
 std::ostream& operator<<(std::ostream& output, const Stats& stats)
