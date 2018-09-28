@@ -8,6 +8,7 @@
 // System include
 #include <iostream>
 #include <vector>
+#include <climits>
 
 namespace lab1
 {
@@ -16,7 +17,7 @@ namespace lab1
 class EventScheduler
 {
 public:
-    EventScheduler(double rho);
+    EventScheduler(double rho, unsigned long queueLength = ULONG_MAX);
     ~EventScheduler();
         
     void    initArrival();
@@ -27,9 +28,10 @@ public:
     void    getStats();
 
 private:
-    double               rho;
-    Stats                stats;
-    std::vector<Event*>  eventQueue;
+    double              rho;
+    unsigned long       queueLength;
+    Stats               stats;
+    std::vector<Event*> eventQueue;
     
     friend std::ostream& operator<<(std::ostream& output, const EventScheduler* ES);
 };

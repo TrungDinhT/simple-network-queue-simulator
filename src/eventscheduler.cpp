@@ -24,8 +24,9 @@ bool compareEvent (const Event* e1, const Event* e2)
     return e1->arrivalTime() > e2->arrivalTime();
 }
 
-EventScheduler::EventScheduler(double rho)
+EventScheduler::EventScheduler(double rho, unsigned long queueLength)
   : rho(rho),
+    queueLength(queueLength),
     stats(simulationTime)
 {
 }
@@ -71,14 +72,14 @@ void EventScheduler::initArrival()
 void EventScheduler::initDeparture()
 {
     unsigned long   arrivalPos = 0;
-    double          latestDeparture = 0, serviceTime;
+    double          latestDeparture = 0;
 
     Packet*         arrival = dynamic_cast<Packet*>(eventQueue[arrivalPos]);
     
     do
     {
         Packet* packet;
-        double  departureTime;
+        double  serviceTime, departureTime;
 
         serviceTime = arrival->packetSize()/C;
         
@@ -104,11 +105,14 @@ void EventScheduler::initDeparture()
 
 void EventScheduler::init()
 {
-    unsigned long firstArrivalPacketPosition;
-
     initArrival();
     initObserver();
-    initDeparture();
+
+    // Infinite queue
+    if(queueLength == ULONG_MAX)
+    {
+        initDeparture();
+    }
     
     // Sort events following time order
     std::sort(eventQueue.begin(), eventQueue.end(), compareEvent);
@@ -116,18 +120,23 @@ void EventScheduler::init()
 
 void EventScheduler::getStats()
 {
-    stats.process(eventQueue);
+    stats.process(eventQueue, queueLength);
     
     std::cout << "******************************************************\n";
-    std::cout << "rho = " << rho << "\n";
+    std::cout << "rho = " << rho << "\n"; 
     std::cout << stats;
     std::cout << "******************************************************\n";
     std::cout << "\n";
 }
 
+unsigned long queueLength() const
+{
+    return queueLength;
+}
+
 std::ostream& operator<<(std::ostream& output, const EventScheduler* ES)
 {
-    for(int i = 0; i < ES->eventQueue.size(); i++)
+    for(unsigned i = 0; i < ES->eventQueue.size(); i++)
     {
         output << ES->eventQueue[i] << "\n";
     }

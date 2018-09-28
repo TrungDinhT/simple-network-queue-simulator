@@ -1,8 +1,10 @@
 #include "simulator.h"
 
+using namespace lab1;
+
 int main(void)
 {
-    lab1::Simulator sim;
+    Simulator sim;
     
     sim.run();
     

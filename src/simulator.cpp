@@ -20,6 +20,12 @@ Simulator::~Simulator()
 
 void Simulator::init(double rho)
 {
+    // Deallocate ES to prepare for new one
+    if(ES)
+    {
+        delete ES;
+        ES = 0;
+    }
     ES = new EventScheduler(rho);
     ES->init();
 }
@@ -34,8 +40,6 @@ void Simulator::run()
     for(double rho = 0.25; rho <= 0.95; rho += 0.1)
     {
         init(rho);
-//         std::cout << ES;
-        
         process();
     }
 }

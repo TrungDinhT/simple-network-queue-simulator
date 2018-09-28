@@ -3,18 +3,21 @@
 
 // System include
 #include <iostream>
+#include <climits>
 
 namespace lab1
 {
 
 Stats::Stats(unsigned int T)
-  : nObs(0),
+:   simulationTime(T),
+    queueLength(0),
+    nObs(0),
     nArv(0),
     nDep(0),
     nIdle(0),
+    nLoss(0),
     E_T(0.0),
-    E_N(0.0),
-    simulationTime(T)
+    E_N(0.0)
 {
 }
 
@@ -22,8 +25,10 @@ Stats::~Stats()
 {
 }
 
-void Stats::process(std::vector<Event*>& eventQueue)
+void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength)
 {
+    this->queueLength = queueLength;
+    
     while(!eventQueue.empty())
     {
         Event* event = eventQueue.back();
@@ -48,16 +53,42 @@ void Stats::process(std::vector<Event*>& eventQueue)
         else
         {
             Packet* packet = dynamic_cast<Packet*>(event);
+            double  latestDeparture = 0;
             
-            if(packet->type() == Arrival)
+            if(queueLength == ULONG_MAX)
             {
-                nArv++;
-                E_T -= packet->arrivalTime();
+                if(packet->type() == Arrival)
+                {
+                    nArv++;
+                    E_T -= packet->arrivalTime();
+                }
+                else
+                {
+                    nDep++;
+                    E_T += packet->arrivalTime();
+                }
             }
             else
             {
-                nDep++;
-                E_T += packet->arrivalTime();
+                if((nArv - nDep) == queueLength)
+                {
+                    nLoss++;
+                }
+                else
+                {
+                    double serviceTime, departureTime;
+                    
+                    serviceTime = arrival->packetSize()/C;
+                    
+                    if(arrival->arrivalTime() + serviceTime >= latestDeparture + serviceTime)
+                    {
+                        departureTime = arrival->arrivalTime() + serviceTime;
+                    }
+                    else
+                    {
+                        departureTime = latestDeparture + serviceTime;
+                    }
+                }
             }
         }
 
@@ -72,11 +103,15 @@ void Stats::process(std::vector<Event*>& eventQueue)
 std::ostream& operator<<(std::ostream& output, const Stats& stats)
 {
     output << "Simulation time: " << stats.simulationTime << " s\n";
+    (stats.queueLength == ULONG_MAX)  
+        ?   output << "queueLength = Inf \n" 
+        :   output << "queueLength = " <<  queueLength << "\n";
     output << "-------------------------------\n";
     output << "nObs = " << stats.nObs << "\n";
     output << "nArv = " << stats.nArv << "\n";
     output << "nDep = " << stats.nDep << "\n";
-    output << "PIdle = " << stats.nIdle*1.0/stats.nObs << "\n";
+    output << "PIdle = " << stats.nIdle*100.0/stats.nObs << "%\n";
+    output << "PLoss = " << stats.nLoss*100.0/stats.nArv << "%\n"; 
     output << "E_T = " << stats.E_T << "\n";
     output << "E_N = " << stats.E_N << "\n";
     

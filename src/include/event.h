@@ -25,7 +25,7 @@ class Event
 {
 public:
     Event(EventType type, double t);
-    ~Event();
+    virtual ~Event();
     
     EventType   evtType() const;
     double      arrivalTime() const;
@@ -60,7 +60,7 @@ public:
     double packetSize() const;
     PacketType type() const;
     
-    virtual std::ostream& print(std::ostream& output);
+    std::ostream& print(std::ostream& output) override;
 
 private:
     double     length;

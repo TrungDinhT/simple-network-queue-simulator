@@ -17,16 +17,18 @@ public:
     Stats(unsigned int T);
     ~Stats();
 
-    void process(std::vector<Event*>& eventQueue);
+    void process(std::vector<Event*>& eventQueue, unsigned long queueLength);
 
 private:
+    unsigned int    simulationTime;
+    unsigned long   queueLength;
     unsigned long   nObs;
     unsigned long   nArv;
     unsigned long   nDep;
     unsigned long   nIdle;
+    unsigned long   nLoss;
     double          E_T;
     double          E_N;
-    unsigned int    simulationTime;
     friend std::ostream& operator<<(std::ostream& output, const Stats& stats);
 };    
     
