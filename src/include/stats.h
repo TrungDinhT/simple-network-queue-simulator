@@ -1,10 +1,10 @@
 #ifndef STATS_H
 #define STATS_H
 
-// Local includes
+// Local include
 #include "event.h"
 
-// System includes
+// System include
 #include <iostream>
 #include <vector>
 

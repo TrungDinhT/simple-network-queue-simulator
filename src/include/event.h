@@ -1,6 +1,7 @@
 #ifndef EVENT_H
 #define EVENT_H
 
+// System include
 #include <iostream>
 
 namespace lab1

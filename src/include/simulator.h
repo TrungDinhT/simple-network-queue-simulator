@@ -1,6 +1,7 @@
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
+// Local include
 #include "eventscheduler.h"
 
 namespace lab1
