@@ -54,17 +54,7 @@ void EventScheduler::initObserver()
     while(arrivalTime < simulationTime);    
 }
 
-void EventScheduler::initPackets()
-{
-    std::vector<Packet*> packetQueue;
-
-    initArrival(packetQueue);
-    initDeparture(packetQueue);
-
-    eventQueue.insert(eventQueue.end(), packetQueue.begin(), packetQueue.end());
-}
-
-void EventScheduler::initArrival(std::vector<Packet*>& packetQueue)
+void EventScheduler::initArrival()
 {
     double arrivalTime = 0;    
     Random::seedRand();
@@ -72,19 +62,18 @@ void EventScheduler::initArrival(std::vector<Packet*>& packetQueue)
     do
     {
         Packet* packet = new Packet(Arrival, arrivalTime, Random::getInstance().randValue(1.0/L));
-        packetQueue.push_back(packet);
+        eventQueue.push_back(packet);
         arrivalTime += Random::getInstance().randValue(lambda);
     }
     while(arrivalTime < simulationTime);
 }
 
-void EventScheduler::initDeparture(std::vector<Packet*>& packetQueue)
+void EventScheduler::initDeparture()
 {
     unsigned long   arrivalPos = 0;
     double          latestDeparture = 0, serviceTime;
 
-    Packet*         arrival = packetQueue[arrivalPos];
-    PacketType      nextPacket;
+    Packet*         arrival = dynamic_cast<Packet*>(eventQueue[arrivalPos]);
     
     do
     {
@@ -103,22 +92,23 @@ void EventScheduler::initDeparture(std::vector<Packet*>& packetQueue)
         }
         
         packet = new Packet(Departure, departureTime, arrival->packetSize());
-        packetQueue.push_back(packet);
+        eventQueue.push_back(packet);
         
         latestDeparture = departureTime;
         arrivalPos++;
         
-        arrival = packetQueue[arrivalPos];
+        arrival = dynamic_cast<Packet*>(eventQueue[arrivalPos]);
     }
-    while(arrival->type() == Arrival);
+    while(arrival != nullptr);
 }
 
 void EventScheduler::init()
 {
     unsigned long firstArrivalPacketPosition;
 
+    initArrival();
     initObserver();
-    initPackets();
+    initDeparture();
     
     // Sort events following time order
     std::sort(eventQueue.begin(), eventQueue.end(), compareEvent);

@@ -19,11 +19,9 @@ public:
     EventScheduler(double rho);
     ~EventScheduler();
         
-    void    initArrival(std::vector<Packet*>& packetQueue);
-    void    initDeparture(std::vector<Packet*>& packetQueue);
-    
+    void    initArrival();
     void    initObserver();
-    void    initPackets();
+    void    initDeparture();
     
     void    init();
     void    getStats();
