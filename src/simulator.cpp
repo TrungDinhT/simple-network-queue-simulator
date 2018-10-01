@@ -1,6 +1,5 @@
+// Local include
 #include "simulator.h"
-#include <iostream>
-
 
 namespace lab1
 {
@@ -18,7 +17,7 @@ Simulator::~Simulator()
     }
 }
 
-void Simulator::init(double rho)
+void Simulator::init(double simulationTime, double rho)
 {
     // Deallocate ES to prepare for new one
     if(ES)
@@ -26,22 +25,13 @@ void Simulator::init(double rho)
         delete ES;
         ES = 0;
     }
-    ES = new EventScheduler(rho);
-    ES->init();
+    ES = new EventScheduler();
+    ES->init(simulationTime, rho);
 }
 
-void Simulator::process()
+const Stats& Simulator::getStats(unsigned long queueLength, double simulationTime)
 {
-    ES->getStats();
-}
-
-void Simulator::run()
-{
-    for(double rho = 0.25; rho <= 0.95; rho += 0.1)
-    {
-        init(rho);
-        process();
-    }
+    return ES->getStats(queueLength, simulationTime);
 }
     
 } // namespace lab1

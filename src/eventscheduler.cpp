@@ -4,17 +4,7 @@
 
 // System includes
 #include <algorithm>
-
-// Total simulation time (in s)
-#define simulationTime 10000
-
-// Packet relevant parameters
-#define lambda rho*C/L
-#define L 12000
-#define C 1000000
-
-// Average observer per second
-#define alpha 4*lambda
+#include <climits>
 
 namespace lab1
 {
@@ -24,10 +14,7 @@ bool compareEvent (const Event* e1, const Event* e2)
     return e1->arrivalTime() > e2->arrivalTime();
 }
 
-EventScheduler::EventScheduler(double rho, unsigned long queueLength)
-  : rho(rho),
-    queueLength(queueLength),
-    stats(simulationTime)
+EventScheduler::EventScheduler()
 {
 }
 
@@ -39,7 +26,7 @@ EventScheduler::~EventScheduler()
     }
 }
 
-void EventScheduler::initObserver()
+void EventScheduler::initObserver(double simulationTime, double alpha)
 {
     // First observer should not be at 0
     double arrivalTime = Random::getInstance().randValue(alpha);
@@ -55,7 +42,7 @@ void EventScheduler::initObserver()
     while(arrivalTime < simulationTime);    
 }
 
-void EventScheduler::initArrival()
+void EventScheduler::initArrival(double simulationTime, double lambda)
 {
     double arrivalTime = 0;    
     Random::seedRand();
@@ -103,35 +90,24 @@ void EventScheduler::initDeparture()
     while(arrival != nullptr);
 }
 
-void EventScheduler::init()
+void EventScheduler::init(double simulationTime, double rho)
 {
-    initArrival();
-    initObserver();
+    initArrival(simulationTime, rho*C/L);
+    initObserver(simulationTime, 4*rho*C/L); //alpha = 4*lambda
 
     // Infinite queue
-    if(queueLength == ULONG_MAX)
-    {
-        initDeparture();
-    }
+#ifdef infQueue
+    initDeparture();
+#endif
     
     // Sort events following time order
     std::sort(eventQueue.begin(), eventQueue.end(), compareEvent);
 }
 
-void EventScheduler::getStats()
+const Stats& EventScheduler::getStats(unsigned long queueLength, double simulationTime)
 {
-    stats.process(eventQueue, queueLength);
-    
-    std::cout << "******************************************************\n";
-    std::cout << "rho = " << rho << "\n"; 
-    std::cout << stats;
-    std::cout << "******************************************************\n";
-    std::cout << "\n";
-}
-
-unsigned long queueLength() const
-{
-    return queueLength;
+    stats.process(eventQueue, queueLength, simulationTime);
+    return stats;
 }
 
 std::ostream& operator<<(std::ostream& output, const EventScheduler* ES)

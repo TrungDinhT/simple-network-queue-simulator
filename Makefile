@@ -1,0 +1,27 @@
+SAVETOCSV = -DsaveToCSV
+CXX = g++
+RM = rm -rf
+CFLAGS += -Wall
+INC = -I ./src/include
+CPPFLAGS = $(SAVETOCSV) $(INFQUEUE) --std=c++11 -Wall $(INC)
+
+HEADERS=$(shell ls src/include/)
+SRCS=$(shell ls src/*.cpp)
+OBJS=$(subst .cpp,.o,$(SRCS))
+
+all: prep main clean
+
+main:		$(OBJS)
+		$(CXX)  $(CPPFLAGS) -o main $(OBJS)
+
+main.o: 	$(SRCS) $(HEADERS)
+
+prep:
+		if [[ ! -d "output" ]] ; then mkdir output; fi;	
+
+clean:
+		$(RM) $(OBJS)
+
+distclean: 	clean
+		$(RM) main
+		$(RM) bin output

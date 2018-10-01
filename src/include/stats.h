@@ -7,7 +7,8 @@
 // System include
 #include <iostream>
 #include <vector>
-#include <queue>
+#include <deque>
+#include <fstream>
 
 namespace lab1
 {
@@ -15,20 +16,20 @@ namespace lab1
 class Stats
 {
 public:
-    Stats(unsigned int T);
+    Stats();
     ~Stats();
 
-    void process(std::vector<Event*>& eventQueue, unsigned long queueLength);
+    void process(std::vector<Event*>& eventQueue, unsigned long queueLength, double simulationTime);
 
 private:
+    void processDepartureQueue(std::deque<double>& nextDepartures, double currentTime);
     void observerStats();
     void infiniteQueuePacketStats(const Packet* packet);
-    void finiteQueuePacketStats(const Packet* packet, double& currentTime, 
-                                std::queue<double>& nextDepartures);    
+    void finiteQueuePacketStats(const Packet* packet, unsigned long queueLength, 
+                                double currentTime, double simulationTime,
+                                std::deque<double>& nextDepartures, double& nextDeparture);    
 
 private:
-    unsigned int    simulationTime;
-    unsigned long   queueLength;
     unsigned long   nObs;
     unsigned long   nArv;
     unsigned long   nDep;
@@ -36,6 +37,7 @@ private:
     unsigned long   nLoss;
     double          E_T;
     double          E_N;
+
     friend std::ostream& operator<<(std::ostream& output, const Stats& stats);
 };    
     

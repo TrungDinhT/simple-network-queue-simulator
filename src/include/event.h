@@ -4,6 +4,10 @@
 // System include
 #include <iostream>
 
+// Network parameters
+#define L 12000
+#define C 1000000
+
 namespace lab1
 {
 

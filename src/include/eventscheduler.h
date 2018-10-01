@@ -8,7 +8,6 @@
 // System include
 #include <iostream>
 #include <vector>
-#include <climits>
 
 namespace lab1
 {
@@ -17,19 +16,18 @@ namespace lab1
 class EventScheduler
 {
 public:
-    EventScheduler(double rho, unsigned long queueLength = ULONG_MAX);
+    EventScheduler();
     ~EventScheduler();
-        
-    void    initArrival();
-    void    initObserver();
-    void    initDeparture();
     
-    void    init();
-    void    getStats();
+    void         init(double simulationTime, double rho);
+    const Stats& getStats(unsigned long queueLength, double simulationTime);
 
 private:
-    double              rho;
-    unsigned long       queueLength;
+    void         initArrival(double simulationTime, double lambda);
+    void         initObserver(double simulationTime, double alpha);
+    void         initDeparture();    
+
+private:
     Stats               stats;
     std::vector<Event*> eventQueue;
     

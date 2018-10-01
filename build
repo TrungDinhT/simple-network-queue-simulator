@@ -1,0 +1,39 @@
+#!/bin/sh
+
+inf_queue=true
+debug=true
+
+for arg in "$@"; do
+    case "$arg" in
+        --enable-debug)
+            debug=true;;
+        --disable-debug)
+            debug=false;;
+        --inf_queue)
+            inf_queue=true;;
+        --fin_queue)
+            inf_queue=false;;
+    --help)
+        echo 'usage: ./build [options]'
+        echo 'options:'
+        echo '  --enable-debug: print results to screen'
+        echo '  --disable-debug: save result to csv file in output/'        
+        echo '  --inf_queue: infinite buffer for simulator'
+        echo '  --fin_queue: finite buffer for simulator'
+        echo 'default option is --enable-debug and --inf_queue'
+        exit 0
+        ;;
+    esac
+done
+
+if $debug ; then
+    echo 'SAVETOCSV = -DsaveToCSV' > Makefile
+fi
+
+if $inf_queue ; then
+    echo 'INFQUEUE = -DinfQueue' >> Makefile
+fi
+
+cat Makefile.in >> Makefile
+
+make

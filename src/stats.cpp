@@ -4,14 +4,13 @@
 // System include
 #include <iostream>
 #include <climits>
+#include <algorithm>
 
 namespace lab1
 {
 
-Stats::Stats(unsigned int T)
-:   simulationTime(T),
-    queueLength(0),
-    nObs(0),
+Stats::Stats()
+:   nObs(0),
     nArv(0),
     nDep(0),
     nIdle(0),
@@ -25,21 +24,24 @@ Stats::~Stats()
 {
 }
 
-void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength)
+void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength, double simulationTime)
 {
-    double currentTime;
-
-    std::queue<double> nextDepartures;
-    nextDepartures.push(0.0); // first packet arrived at 0
-
-    this->queueLength = queueLength;
+    double              nextDeparture = 0.0;
+    std::deque<double>  nextDepartures;
     
     while(!eventQueue.empty())
     {
         Event* event = eventQueue.back();
+        double currentTime = event->arrivalTime();
 
-        currentTime = event->arrivalTime(); // = 0 == nextDeparture for first packet
-
+        /*
+         * This is useless when the buffer is infinite, since we don't push anything
+         * in nextDepartures deck.
+         * In case that the buffer is finite, this one will update nDep and nextDepartures
+         * each time we meet an event.
+         */
+        processDepartureQueue(nextDepartures, currentTime);
+        
         if(event->evtType() == Obs)
         {
             observerStats();    
@@ -55,9 +57,11 @@ void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength)
             else
             {
                 /*
-                * Every packet is arrival here. 
-                */
-                finiteQueuePacketStats(packet, currentTime, nextDepartures);
+                 * Every packet is arrival here. 
+                 */
+                finiteQueuePacketStats(packet, queueLength,
+                                       currentTime, simulationTime,
+                                       nextDepartures, nextDeparture);
             }
         }
 
@@ -69,20 +73,33 @@ void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength)
     E_N /= nObs;
 }
 
+void Stats::processDepartureQueue(std::deque<double>& nextDepartures, double currentTime)
+{
+    while(!nextDepartures.empty() && currentTime >= nextDepartures.front())
+    {
+        nDep++;
+        E_T += nextDepartures.front();
+        nextDepartures.pop_front();
+        //         std::cout << "currentTime = " << currentTime*1000 << " ms\n";
+        //         std::cout << "nextDeparture = " << nextDeparture*1000 << " ms\n";
+    }
+}
+
 void Stats::observerStats()
 {
     nObs++;
+    
     if(nArv > nDep)
     {
-        E_N += nArv - nDep;
+        E_N += nArv - nDep - nLoss;
     }
-    else if(nArv == nDep)
+    else if(nArv == nDep + nLoss)
     {
         nIdle++;
     }
     else
     {
-        std::cerr << "ERROR: nArv < nDep \n";
+        std::cerr << "ERROR: nArv = " << nArv << " < nDep" << nDep << "\n";
         exit(1);
     }
 }
@@ -101,54 +118,64 @@ void Stats::infiniteQueuePacketStats(const Packet* packet)
     }
 }
 
-void Stats::finiteQueuePacketStats(const Packet* packet, double& currentTime, std::queue<double>& nextDepartures)
+void Stats::finiteQueuePacketStats(const Packet* packet, unsigned long queueLength, 
+                                   double currentTime, double simulationTime,
+                                   std::deque<double>& nextDepartures, double& nextDeparture)
 {
-    double nextDeparture;
+    nArv++;
 
-    while(currentTime > nextDeparture)
-    {
-        nextDeparture = nextDepartures.front();
-        nextDepartures.pop();
-        nDep++;
-        E_T += nextDeparture;
-    }
-
-    if((nArv - nDep) == queueLength) // queue full
+    if((nArv - nLoss - nDep) == queueLength + 1) // queue full
     {
         nLoss++;
     }
-    else // (nArv - nDep) < queueLength -> queue not full yet
+    else if ((nArv - nLoss - nDep) <= queueLength) // queue not full yet
     {
-        nArv++;
-        E_T -= packet->arrivalTime();
+        double departureTime;
+        double serviceTime = packet->packetSize()/C;
 
-        if(packet->arrivalTime() + serviceTime >= nextDeparture + serviceTime)
+        if(currentTime >= nextDeparture)
         {
-            nextDepartures.push(packet->arrivalTime() + packet->packetSize()/C);
+            departureTime = currentTime + serviceTime;
         }
         else
         {
-            nextDepartures.push(nextDeparture + packet->packetSize()/C);
+            departureTime = nextDeparture + serviceTime;
         }
+        
+        if(departureTime <= simulationTime)
+        {
+            nextDepartures.push_back(departureTime);
+            std::sort(nextDepartures.begin(), nextDepartures.end());
+            
+            E_T -= currentTime;
+            
+            // Update departure with the latest one
+            nextDeparture = nextDepartures.back();
+        }
+        else
+        {
+            // Pretending that packet never exists
+            nArv--;
+        }
+    }
+    else
+    {
+        std::cerr << "ERROR: nArv = " << nArv << ", nDep = " << nDep << ", nLoss= " << nLoss << "\n";
+        exit(1);
     }
 }
 
 std::ostream& operator<<(std::ostream& output, const Stats& stats)
 {
-    output << "Simulation time: " << stats.simulationTime << " s\n";
-    (stats.queueLength == ULONG_MAX)  
-        ?   output << "queueLength = Inf \n" 
-        :   output << "queueLength = " <<  queueLength << "\n";
-    output << "-------------------------------\n";
-    output << "nObs = " << stats.nObs << "\n";
-    output << "nArv = " << stats.nArv << "\n";
-    output << "nDep = " << stats.nDep << "\n";
-    output << "PIdle = " << stats.nIdle*100.0/stats.nObs << "%\n";
-    output << "PLoss = " << stats.nLoss*100.0/stats.nArv << "%\n"; 
-    output << "E_T = " << stats.E_T << "\n";
-    output << "E_N = " << stats.E_N << "\n";
+    output << stats.nObs << ",";
+    output << stats.nArv << ",";
+    output << stats.nDep << ",";
+    output << stats.nIdle*100.0/stats.nObs << ",";
+    output << stats.nLoss*100.0/stats.nArv << ",";
+    output << stats.E_N << ",";
+    output << stats.E_T << "\n";
     
     return output;
 }
-    
+
 } // namespace lab1
