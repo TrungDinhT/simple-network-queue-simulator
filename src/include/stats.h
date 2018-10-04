@@ -23,12 +23,12 @@ public:
     void print();
 
 private:
-    void processDepartureQueue(std::queue<double>& nextDepartures, double currentTime);
+    void processDepartureQueue(std::deque<double>& nextDepartures, double currentTime);
     void observerStats();
     void infiniteQueuePacketStats(const Packet* packet);
     void finiteQueuePacketStats(const Packet* packet, unsigned long queueLength, 
                                 double currentTime, double simulationTime,
-                                std::queue<double>& nextDepartures, double& nextDeparture);    
+                                std::deque<double>& nextDepartures, double& nextDeparture);    
 
 private:
     unsigned long   nObs;

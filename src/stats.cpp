@@ -27,7 +27,7 @@ Stats::~Stats()
 void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength, double simulationTime)
 {
     double              nextDeparture = 0.0;
-    std::queue<double>  nextDepartures;
+    std::deque<double>  nextDepartures;
     
     while(!eventQueue.empty())
     {
@@ -73,13 +73,13 @@ void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength, 
     E_N /= nObs;
 }
 
-void Stats::processDepartureQueue(std::queue<double>& nextDepartures, double currentTime)
+void Stats::processDepartureQueue(std::deque<double>& nextDepartures, double currentTime)
 {
     while(!nextDepartures.empty() && currentTime >= nextDepartures.front())
     {
         nDep++;
         E_T += nextDepartures.front();
-        nextDepartures.pop();
+        nextDepartures.pop_front();
     }
 }
 
@@ -118,7 +118,7 @@ void Stats::infiniteQueuePacketStats(const Packet* packet)
 
 void Stats::finiteQueuePacketStats(const Packet* packet, unsigned long queueLength, 
                                    double currentTime, double simulationTime,
-                                   std::queue<double>& nextDepartures, double& nextDeparture)
+                                   std::deque<double>& nextDepartures, double& nextDeparture)
 {
     nArv++;
 
@@ -142,7 +142,7 @@ void Stats::finiteQueuePacketStats(const Packet* packet, unsigned long queueLeng
         
         if(departureTime <= simulationTime)
         {
-            nextDepartures.push(departureTime);
+            nextDepartures.push_back(departureTime);
             std::sort(nextDepartures.begin(), nextDepartures.end());
             
             E_T -= currentTime;

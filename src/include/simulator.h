@@ -6,7 +6,6 @@
 #include "stats.h"
 
 // System include
-#include <climits>
 #include <fstream>
 
 namespace lab1
@@ -20,9 +19,9 @@ public:
 
     void init(double simulationTime, double rho);
     void getStats(unsigned long queueLength, double simulationTime, 
-                  double rho, std::ofstream output);
-    void run(unsigned long queueLength, double simulationTime, std::ofstream output, 
-             double rhoMin, double rhoMax, double step);
+                  double rho, std::ofstream& output);
+    void run(unsigned long queueLength, double simulationTime, unsigned numbersOfSteps, 
+             double* rhoMin, double* rhoMax, double* step);
 
 private:
     EventScheduler* ES;

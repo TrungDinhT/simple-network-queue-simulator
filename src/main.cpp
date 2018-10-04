@@ -2,13 +2,10 @@
 #include "simulator.h"
 
 // System include
-#include <sstream>
-#include <fstream>
+#include <climits>
 
 // Total simulation time (in s)
 #define simulationTime 15000
-
-#define N 3
 
 using namespace lab1;
 
@@ -16,28 +13,24 @@ int main(void)
 {    
     Simulator sim;
 
-    unsigned K[N] = {5, 10, 40};
-    double rhoMin[N] = {0.4, 2, 5};
-    double rhoMax[N] = {2, 5, 10};
-    double step[N] = {0.1, 0.2, 0.4};
-    std::ofstream dataFile[N];
+#ifndef infQueue
+    unsigned numbersOfSteps = 3;
+    unsigned K[3] = {5, 10, 40};
+    double rhoMin[numbersOfSteps] = {0.4, 2, 5};
+    double rhoMax[numbersOfSteps] = {2, 5, 10};
+    double step[numbersOfSteps] = {0.1, 0.2, 0.4};
+#else // #ifdef infQueue
+    unsigned numbersOfSteps = 1;
+    unsigned K[1] = {ULONG_MAX};
+    double rhoMin[numbersOfSteps] = {0.25};
+    double rhoMax[numbersOfSteps] = {1.5};
+    double step[numbersOfSteps] = {0.1};
+#endif // #ifndef infQueue
 
-    for(unsigned i = 0; i < N; i++)
+    for(const unsigned k: K)
     {
-        std::sstream fileName("output/data_finite_queue_L_"); 
-        fileName << K[i] << ".csv";
-
-        dataFile[i].open(fileName.str(), std::ofstream::out | std::ofstream::trunc);
-        dataFile[i] << "simulationTime = " << simulationTime << "\n";
-        dataFile[i] << "queue,rho,nObs,nArv,nDep,PIdle,PLoss,E_N,E_T\n";
-
-        for(unsigned j = 0; j < N; j++)
-        {
-            sim.run(K[i], simulationTime, dataFile, rhoMin[j], rhoMax[j], step[j]);
-        }
+        sim.run(k, simulationTime, numbersOfSteps, rhoMin, rhoMax, step);
     }
-        
-    dataFile.close();
 
     return 0;
 }
