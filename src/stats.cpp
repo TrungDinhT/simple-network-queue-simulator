@@ -50,7 +50,7 @@ void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength, 
         {
             Packet* packet = dynamic_cast<Packet*>(event);
             
-            if(queueLength == ULONG_MAX) // Infinite queue
+            if(queueLength == 0) // Infinite queue
             {
                 infiniteQueuePacketStats(packet);
             }
@@ -168,8 +168,8 @@ void Stats::print()
     std::cout << "Numbers of observations: " << nObs << "\n";
     std::cout << "Numbers of arrival: " << nArv << "\n";
     std::cout << "Numbers of departure: " << nDep << "\n";
-    std::cout << "Idle time: " << nIdle*1.0/nObs << "%\n";
-    std::cout << "Loss: " << nLoss*1.0/nArv << "%\n";
+    std::cout << "Idle time: " << nIdle*1.0/nObs << "\n";
+    std::cout << "Loss: " << nLoss*1.0/nArv << "\n";
     std::cout << "Average queue size: " << E_N << "\n";
     std::cout << "Average delay: " << E_T << "\n";
 }

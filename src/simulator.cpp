@@ -2,7 +2,6 @@
 #include "simulator.h"
 
 // System include
-#include <sstream>
 #include <fstream>
 #include <climits>
 
@@ -38,34 +37,34 @@ void Simulator::getStats(unsigned long queueLength, double simulationTime,
                          double rho, std::ofstream& output)
 {
     Stats stats = ES->getStats(queueLength, simulationTime);
-    (queueLength == ULONG_MAX) ? output << "inf" << "," << rho << ","
-                               : output << queueLength << "," << rho << ",";
+    (queueLength == 0) ? output << "inf" << "," << rho << ","
+                       : output << queueLength << "," << rho << ",";
     output << stats;
 
 #ifdef Debug
     std::cout << "**************************************\n"; 
     std::cout << "simulationTime = " << simulationTime << "\n";
-    (queueLength == ULONG_MAX) ? std::cout << "Queue size = inf" << "\n"
-                               : std::cout << "Queue size = " << queueLength << "\n";
+    (queueLength == 0) ? std::cout << "Queue size = inf" << "\n"
+                       : std::cout << "Queue size = " << queueLength << "\n";
     std::cout << "Utilization factor (rho) = " << rho << "\n";
     stats.print();
     std::cout << "**************************************\n";
 #endif 
 }
 
-void Simulator::run(unsigned long queueLength, double simulationTime, unsigned numbersOfSteps, 
-                    double* rhoMin, double* rhoMax, double* step)
+void Simulator::run(unsigned long queueLength, double simulationTime,
+                    std::vector<double> rhoMin, std::vector<double> rhoMax, std::vector<double> step)
 {
     std::ofstream dataFile;
-    std::stringstream fileName("output/data_queue_size_"); 
-    (queueLength == ULONG_MAX) ? fileName << queueLength << ".csv"
-                               : fileName << "inf.csv";
+    std::string fileName("output/data_queue_size_"); 
+    (queueLength == 0) ? fileName += "inf.csv"
+                       : fileName += std::to_string(queueLength) + ".csv";
 
-    dataFile.open(fileName.str(), std::ofstream::out | std::ofstream::trunc);
+    dataFile.open(fileName, std::ofstream::out | std::ofstream::trunc);
 
     dataFile << "simulationTime = " << simulationTime << "\n";
     dataFile << "queue,rho,nObs,nArv,nDep,PIdle,PLoss,E_N,E_T\n";
-    for(unsigned i = 0; i < numbersOfSteps; i++)
+    for(unsigned i = 0; i < step.size(); i++)
     {
         for(double rho = rhoMin[i]; rho <= rhoMax[i]; rho += step[i])
         {

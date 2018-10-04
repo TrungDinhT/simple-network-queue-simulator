@@ -2,6 +2,7 @@
 
 inf_queue=true
 debug=true
+multithreading=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -9,6 +10,10 @@ for arg in "$@"; do
             debug=true;;
         --disable-debug)
             debug=false;;
+        --enable-multithreading)
+            multithreading=true;;
+        --disable-multithreading)
+            multithreading=false;;
         --inf_queue)
             inf_queue=true;;
         --fin_queue)
@@ -32,6 +37,10 @@ fi
 
 if $inf_queue ; then
     echo 'INFQUEUE = -DinfQueue' >> Makefile
+fi
+
+if $multithreading ; then
+    echo 'MULTITHREADING = -Dmultithreading -lpthread'
 fi
 
 cat Makefile.in >> Makefile
