@@ -2,38 +2,42 @@
 #include "simulator.h"
 
 // System include
-#include <iostream>
+#include <sstream>
 #include <fstream>
 
 // Total simulation time (in s)
 #define simulationTime 15000
 
-// #define infQueue 1
+#define N 3
 
 using namespace lab1;
 
 int main(void)
-{
+{    
     Simulator sim;
-    
-#ifdef saveToCSV
+
+    unsigned K[N] = {5, 10, 40};
+    double rhoMin[N] = {0.4, 2, 5};
+    double rhoMax[N] = {2, 5, 10};
+    double step[N] = {0.1, 0.2, 0.4};
+    std::ofstream dataFile[N];
+
+    for(unsigned i = 0; i < N; i++)
     {
-        std::ofstream dataFile;
-#ifdef infQueue
-        dataFile.open("output/data_infinite_queue.csv", std::ofstream::out | std::ofstream::trunc)
-#else // #ifndef infQueue
-        dataFile.open("output/data_finite_queue.csv", std::ofstream::out | std::ofstream::trunc);
-#endif // #ifdef infQueue
-        
-        run<std::ofstream>(sim, simulationTime, dataFile);
-        
-        dataFile.close();
+        std::sstream fileName("output/data_finite_queue_L_"); 
+        fileName << K[i] << ".csv";
+
+        dataFile[i].open(fileName.str(), std::ofstream::out | std::ofstream::trunc);
+        dataFile[i] << "simulationTime = " << simulationTime << "\n";
+        dataFile[i] << "queue,rho,nObs,nArv,nDep,PIdle,PLoss,E_N,E_T\n";
+
+        for(unsigned j = 0; j < N; j++)
+        {
+            sim.run(K[i], simulationTime, dataFile, rhoMin[j], rhoMax[j], step[j]);
+        }
     }
-#else // #ifndef saveToCSV
-    {
-        run<std::ostream>(sim, simulationTime, std::cout);
-    }
-#endif // #ifdef saveToCSV
+        
+    dataFile.close();
 
     return 0;
 }

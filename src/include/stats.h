@@ -20,14 +20,15 @@ public:
     ~Stats();
 
     void process(std::vector<Event*>& eventQueue, unsigned long queueLength, double simulationTime);
+    void print();
 
 private:
-    void processDepartureQueue(std::deque<double>& nextDepartures, double currentTime);
+    void processDepartureQueue(std::queue<double>& nextDepartures, double currentTime);
     void observerStats();
     void infiniteQueuePacketStats(const Packet* packet);
     void finiteQueuePacketStats(const Packet* packet, unsigned long queueLength, 
                                 double currentTime, double simulationTime,
-                                std::deque<double>& nextDepartures, double& nextDeparture);    
+                                std::queue<double>& nextDepartures, double& nextDeparture);    
 
 private:
     unsigned long   nObs;
@@ -38,7 +39,7 @@ private:
     double          E_T;
     double          E_N;
 
-    friend std::ostream& operator<<(std::ostream& output, const Stats& stats);
+    friend std::ofstream& operator<<(std::ofstream& output, const Stats& stats);
 };    
     
 } // namespace lab1

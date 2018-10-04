@@ -27,7 +27,7 @@ Stats::~Stats()
 void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength, double simulationTime)
 {
     double              nextDeparture = 0.0;
-    std::deque<double>  nextDepartures;
+    std::queue<double>  nextDepartures;
     
     while(!eventQueue.empty())
     {
@@ -73,15 +73,13 @@ void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength, 
     E_N /= nObs;
 }
 
-void Stats::processDepartureQueue(std::deque<double>& nextDepartures, double currentTime)
+void Stats::processDepartureQueue(std::queue<double>& nextDepartures, double currentTime)
 {
     while(!nextDepartures.empty() && currentTime >= nextDepartures.front())
     {
         nDep++;
         E_T += nextDepartures.front();
-        nextDepartures.pop_front();
-        //         std::cout << "currentTime = " << currentTime*1000 << " ms\n";
-        //         std::cout << "nextDeparture = " << nextDeparture*1000 << " ms\n";
+        nextDepartures.pop();
     }
 }
 
@@ -120,7 +118,7 @@ void Stats::infiniteQueuePacketStats(const Packet* packet)
 
 void Stats::finiteQueuePacketStats(const Packet* packet, unsigned long queueLength, 
                                    double currentTime, double simulationTime,
-                                   std::deque<double>& nextDepartures, double& nextDeparture)
+                                   std::queue<double>& nextDepartures, double& nextDeparture)
 {
     nArv++;
 
@@ -144,13 +142,13 @@ void Stats::finiteQueuePacketStats(const Packet* packet, unsigned long queueLeng
         
         if(departureTime <= simulationTime)
         {
-            nextDepartures.push_back(departureTime);
+            nextDepartures.push(departureTime);
             std::sort(nextDepartures.begin(), nextDepartures.end());
             
             E_T -= currentTime;
             
             // Update departure with the latest one
-            nextDeparture = nextDepartures.back();
+            nextDeparture = nextDepartures.front();
         }
         else
         {
@@ -165,13 +163,24 @@ void Stats::finiteQueuePacketStats(const Packet* packet, unsigned long queueLeng
     }
 }
 
-std::ostream& operator<<(std::ostream& output, const Stats& stats)
+void Stats::print()
+{
+    std::cout << "Numbers of observations: " << nObs << "\n";
+    std::cout << "Numbers of arrival: " << nArv << "\n";
+    std::cout << "Numbers of departure: " << nDep << "\n";
+    std::cout << "Idle time: " << nIdle*1.0/nObs << "%\n";
+    std::cout << "Loss: " << nLoss*1.0/nArv << "%\n";
+    std::cout << "Average queue size: " << E_N << "\n";
+    std::cout << "Average delay: " << E_T << "\n";
+}
+
+std::ofstream& operator<<(std::ofstream& output, const Stats& stats)
 {
     output << stats.nObs << ",";
     output << stats.nArv << ",";
     output << stats.nDep << ",";
-    output << stats.nIdle*100.0/stats.nObs << ",";
-    output << stats.nLoss*100.0/stats.nArv << ",";
+    output << stats.nIdle*1.0/stats.nObs << ",";
+    output << stats.nLoss*1.0/stats.nArv << ",";
     output << stats.E_N << ",";
     output << stats.E_T << "\n";
     

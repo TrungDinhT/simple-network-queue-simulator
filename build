@@ -27,7 +27,7 @@ for arg in "$@"; do
 done
 
 if $debug ; then
-    echo 'SAVETOCSV = -DsaveToCSV' > Makefile
+    echo 'DEBUG = -DDebug' > Makefile
 fi
 
 if $inf_queue ; then

@@ -29,9 +29,30 @@ void Simulator::init(double simulationTime, double rho)
     ES->init(simulationTime, rho);
 }
 
-const Stats& Simulator::getStats(unsigned long queueLength, double simulationTime)
+void Simulator::getStats(unsigned long queueLength, double simulationTime, 
+                         double rho, std::ofstream output)
 {
-    return ES->getStats(queueLength, simulationTime);
+    Stats stats = ES->getStats(queueLength, simulationTime);
+    output << queueLength << "," << rho << "," << stats;
+
+#ifdef Debug
+    std::cout << "**************************************\n"; 
+    std::cout << "simulationTime = " << simulationTime << "\n";
+    std::cout << "Queue size = " << queueLength << "\n";
+    std::cout << "Utilization factor (rho) = " << rho << "\n";
+    stats.print();
+    std::cout << "**************************************\n";
+#endif 
+}
+
+void Simulator::run(unsigned long queueLength, double simulationTime, std::ofstream output,
+                    double rhoMin, double rhoMax, double step)
+{   
+    for(double rho = rhoMin; rho <= rhoMax; rho += step)
+    {
+        sim.init(simulationTime, rho);
+        getStats(queueLength, simulationTime, rho, output);
+    }
 }
     
 } // namespace lab1

@@ -2,7 +2,7 @@ CXX = g++
 RM = rm -rf
 CFLAGS += -Wall
 INC = -I ./src/include
-CPPFLAGS = $(SAVETOCSV) $(INFQUEUE) --std=c++11 -Wall $(INC)
+CPPFLAGS = $(DEBUG) $(INFQUEUE) --std=c++11 -Wall $(INC)
 
 HEADERS=$(shell ls src/include/)
 SRCS=$(shell ls src/*.cpp)
