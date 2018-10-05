@@ -22,14 +22,18 @@ for arg in "$@"; do
         echo 'usage: ./build [options]'
         echo 'options:'
         echo '  --enable-debug: print results to screen'
-        echo '  --disable-debug: save result to csv file in output/'        
+        echo '  --disable-debug: save result to csv file in output/'
+        echo '  --enable-multithreading allows to run simulation in multithread (used for finite queue with different queue sizes)'
+        echo '  --disable-multithreading does not allow to run simulation in multithread'
         echo '  --inf_queue: infinite buffer for simulator'
         echo '  --fin_queue: finite buffer for simulator'
-        echo 'default option is --enable-debug and --inf_queue'
+        echo 'default option is --enable-debug, --disable-multithreading and --inf_queue'
         exit 0
         ;;
     esac
 done
+
+rm -f Makefile
 
 if $debug ; then
     echo 'DEBUG = -DDebug' > Makefile
@@ -40,7 +44,7 @@ if $inf_queue ; then
 fi
 
 if $multithreading ; then
-    echo 'MULTITHREADING = -Dmultithreading -lpthread'
+    echo 'MULTITHREADING = -Dmultithreading -lpthread' >> Makefile
 fi
 
 cat Makefile.in >> Makefile

@@ -52,7 +52,7 @@ void Stats::process(std::vector<Event*>& eventQueue, unsigned long queueLength, 
             
             if(queueLength == 0) // Infinite queue
             {
-                infiniteQueuePacketStats(packet);
+                infiniteQueuePacketStats(packet, simulationTime);
             }
             else
             {
@@ -102,17 +102,22 @@ void Stats::observerStats()
     }
 }
 
-void Stats::infiniteQueuePacketStats(const Packet* packet)
+void Stats::infiniteQueuePacketStats(const Packet* packet, double simulationTime)
 {
-    if(packet->type() == Arrival)
+    /* For packets departing after the end of the simulation, we will simply ignore them.
+     */
+    if(packet->arrivalTime() <= simulationTime)
     {
-        nArv++;
-        E_T -= packet->arrivalTime();
-    }
-    else
-    {
-        nDep++;
-        E_T += packet->arrivalTime();
+        if(packet->type() == Arrival)
+        {
+            nArv++;
+            E_T -= packet->arrivalTime();
+        }
+        else
+        {
+            nDep++;
+            E_T += packet->arrivalTime();
+        }
     }
 }
 
@@ -143,12 +148,11 @@ void Stats::finiteQueuePacketStats(const Packet* packet, unsigned long queueLeng
         if(departureTime <= simulationTime)
         {
             nextDepartures.push_back(departureTime);
-            std::sort(nextDepartures.begin(), nextDepartures.end());
             
             E_T -= currentTime;
             
             // Update departure with the latest one
-            nextDeparture = nextDepartures.front();
+            nextDeparture = nextDepartures.back();
         }
         else
         {

@@ -25,7 +25,7 @@ public:
 private:
     void processDepartureQueue(std::deque<double>& nextDepartures, double currentTime);
     void observerStats();
-    void infiniteQueuePacketStats(const Packet* packet);
+    void infiniteQueuePacketStats(const Packet* packet, double simulationTime);
     void finiteQueuePacketStats(const Packet* packet, unsigned long queueLength, 
                                 double currentTime, double simulationTime,
                                 std::deque<double>& nextDepartures, double& nextDeparture);    

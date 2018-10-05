@@ -29,7 +29,7 @@ void Simulator::init(double simulationTime, double rho)
         delete ES;
         ES = 0;
     }
-    ES = new EventScheduler();
+    ES = new EventScheduler;
     ES->init(simulationTime, rho);
 }
 

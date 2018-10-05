@@ -33,6 +33,7 @@ public:
     
     EventType   evtType() const;
     double      arrivalTime() const;
+    void        setArrivalTime(double t);
     
     virtual std::ostream& print(std::ostream& output);
 

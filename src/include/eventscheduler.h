@@ -25,7 +25,7 @@ public:
 private:
     void         initArrival(double simulationTime, double lambda);
     void         initObserver(double simulationTime, double alpha);
-    void         initDeparture();    
+    void         initDeparture(double simulationTime);    
 
 private:
     Stats               stats;

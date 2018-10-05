@@ -39,7 +39,7 @@ void EventScheduler::initObserver(double simulationTime, double alpha)
         eventQueue.push_back(event);
         arrivalTime += Random::getInstance().randValue(alpha);
     }
-    while(arrivalTime < simulationTime);    
+    while(arrivalTime <= simulationTime);    
 }
 
 void EventScheduler::initArrival(double simulationTime, double lambda)
@@ -56,7 +56,7 @@ void EventScheduler::initArrival(double simulationTime, double lambda)
     while(arrivalTime < simulationTime);
 }
 
-void EventScheduler::initDeparture()
+void EventScheduler::initDeparture(double simulationTime)
 {
     unsigned long   arrivalPos = 0;
     double          latestDeparture = 0;
@@ -79,10 +79,25 @@ void EventScheduler::initDeparture()
             departureTime = latestDeparture + serviceTime;
         }
         
-        packet = new Packet(Departure, departureTime, arrival->packetSize());
-        eventQueue.push_back(packet);
+        if(departureTime <= simulationTime)
+        {
+            packet = new Packet(Departure, departureTime, arrival->packetSize());            
+            latestDeparture = departureTime;
+        }
+        else
+        {
+            /* Here this packet depart after the simulation ends, so we will not count this packet among the arrival packets
+             * One way to do is to SET arrivalTime of arrival pakcets TO departureTime, which is > simulationTime. In addition, we don't
+             * modify latestDeparture.
+             * 
+             * Further analysis in stat.cpp will help us remove these packets out of our concerned packets.
+             */
+            arrival->setArrivalTime(departureTime);
+            packet = new Packet(Departure, departureTime, arrival->packetSize());
+        }
         
-        latestDeparture = departureTime;
+        eventQueue.push_back(packet);
+
         arrivalPos++;
         
         arrival = dynamic_cast<Packet*>(eventQueue[arrivalPos]);
@@ -97,7 +112,7 @@ void EventScheduler::init(double simulationTime, double rho)
 
     // Infinite queue
 #ifdef infQueue
-    initDeparture();
+    initDeparture(simulationTime);
 #endif
     
     // Sort events following time order

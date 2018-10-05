@@ -24,6 +24,11 @@ double Event::arrivalTime() const
     return arvTime;
 }
 
+void Event::setArrivalTime(double t)
+{
+    arvTime = t;
+}
+
 std::ostream& Event::print(std::ostream& output)
 {
     if(type == Obs)
