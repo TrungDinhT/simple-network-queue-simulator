@@ -1,26 +1,36 @@
 #!/bin/sh
 
-inf_queue=true
-debug=true
-multithreading=false
+inf_queue='INFQUEUE = -DinfQueue'
+debug='DEBUG = -DDebug'
+multithreading=
+built_mode=-1
 
 for arg in "$@"; do
     case "$arg" in
+        --q1)
+            built_mode=1;;
+        --q2)
+            built_mode=2;;
+        --q5)
+	        built_mode=5;;
         --enable-debug)
-            debug=true;;
+            debug='DEBUG = -DDebug';;
         --disable-debug)
-            debug=false;;
+            debug=;;
         --enable-multithreading)
-            multithreading=true;;
+            multithreading='MULTITHREADING = -Dmultithreading -lpthread';;
         --disable-multithreading)
-            multithreading=false;;
+            multithreading=;;
         --inf_queue)
-            inf_queue=true;;
+            inf_queue='INFQUEUE = -DinfQueue';;
         --fin_queue)
-            inf_queue=false;;
+            inf_queue=;;
     --help)
         echo 'usage: ./build [options]'
         echo 'options:'
+        echo '  --q1: build random program for question 1'
+        echo '  --q2: build simulator for question 2 (infinite buffer)'
+        echo '  --q5: build simulator for question 5 (finite buffer)'
         echo '  --enable-debug: print results to screen'
         echo '  --disable-debug: save result to csv file in output/'
         echo '  --enable-multithreading allows to run simulation in multithread (used for finite queue with different queue sizes)'
@@ -33,20 +43,21 @@ for arg in "$@"; do
     esac
 done
 
+if [[ $built_mode == 1 ]] ; then
+    gcc random.c -lm -o random
+elif [[ $built_mode == 2 ]] ; then
+    debug='DEBUG = -DDebug'
+    inf_queue='INFQUEUE = -DinfQueue'
+elif [[ $built_mode == 5 ]] ; then 
+    multithreading='MULTITHREADING = -Dmultithreading -lpthread'
+fi
+
+
 rm -f Makefile
-
-if $debug ; then
-    echo 'DEBUG = -DDebug' > Makefile
-fi
-
-if $inf_queue ; then
-    echo 'INFQUEUE = -DinfQueue' >> Makefile
-fi
-
-if $multithreading ; then
-    echo 'MULTITHREADING = -Dmultithreading -lpthread' >> Makefile
-fi
-
+echo $debug > Makefile
+echo $inf_queue >> Makefile
+echo $multithreading >> Makefile
 cat Makefile.in >> Makefile
+
 
 make
