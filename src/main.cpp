@@ -6,7 +6,7 @@
 #include <string>
 
 // Total simulation time (in s)
-#define simulationTime 15000
+#define simulationTime 10000
 
 using namespace lab1;
 

@@ -87,7 +87,7 @@ void Stats::observerStats()
 {
     nObs++;
     
-    if(nArv > nDep)
+    if(nArv > nDep + nLoss)
     {
         E_N += nArv - nDep - nLoss;
     }

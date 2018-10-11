@@ -1,8 +1,11 @@
-CXX = g++
 RM = rm -rf
-CFLAGS += -Wall
+
+CC = gcc
+CXX = g++
+
+CFLAGS = -Wall -lm
 INC = -I ./src/include
-CPPFLAGS = $(DEBUG) $(INFQUEUE) $(MULTITHREADING) --std=c++11 -Wall $(INC)
+CPPFLAGS = --std=c++11 -Wall -lm $(DEBUG) $(INFQUEUE) $(MULTITHREADING) $(INC)
 
 HEADERS=$(shell ls src/include/)
 SRCS=$(shell ls src/*.cpp)
@@ -10,17 +13,20 @@ OBJS=$(subst .cpp,.o,$(SRCS))
 
 all: prep main clean
 
-main:		$(OBJS)
+random:
+		$(CC) $(CFLAGS) -o random random.c
+
+main:           $(OBJS)
 		$(CXX)  $(CPPFLAGS) -o main $(OBJS)
 
-main.o: 	$(SRCS) $(HEADERS)
+main.o:         $(SRCS) $(HEADERS)
 
 prep:
-		if [[ ! -d "output" ]] ; then mkdir output; fi;	
+		if [[ ! -d "output" ]] ; then mkdir output; fi;
 
 clean:
 		$(RM) $(OBJS)
 
-distclean: 	clean
+distclean:      clean
 		$(RM) main
 		$(RM) bin output

@@ -1,5 +1,5 @@
 #!/bin/sh
-
+random=
 inf_queue='INFQUEUE = -DinfQueue'
 debug='DEBUG = -DDebug'
 multithreading=
@@ -12,7 +12,7 @@ for arg in "$@"; do
         --q2)
             built_mode=2;;
         --q5)
-	        built_mode=5;;
+            built_mode=5;;
         --enable-debug)
             debug='DEBUG = -DDebug';;
         --disable-debug)
@@ -25,39 +25,46 @@ for arg in "$@"; do
             inf_queue='INFQUEUE = -DinfQueue';;
         --fin_queue)
             inf_queue=;;
-    --help)
-        echo 'usage: ./build [options]'
-        echo 'options:'
-        echo '  --q1: build random program for question 1'
-        echo '  --q2: build simulator for question 2 (infinite buffer)'
-        echo '  --q5: build simulator for question 5 (finite buffer)'
-        echo '  --enable-debug: print results to screen'
-        echo '  --disable-debug: save result to csv file in output/'
-        echo '  --enable-multithreading allows to run simulation in multithread (used for finite queue with different queue sizes)'
-        echo '  --disable-multithreading does not allow to run simulation in multithread'
-        echo '  --inf_queue: infinite buffer for simulator'
-        echo '  --fin_queue: finite buffer for simulator'
-        echo 'default option is --enable-debug, --disable-multithreading and --inf_queue'
-        exit 0
-        ;;
+        --help)
+            echo 'usage: ./build [options]'
+            echo 'options:'
+            echo '  --q1: build random program for question 1'
+            echo '  --q2: build simulator for question 2 (infinite buffer)'
+            echo '  --q5: build simulator for question 5 (finite buffer)'
+            echo '  --enable-debug: print results to screen'
+            echo '  --disable-debug: save result to csv file in output/'
+            echo '  --enable-multithreading allows to run simulation in multithread (used for finite queue with different queue sizes)'
+            echo '  --disable-multithreading does not allow to run simulation in multithread'
+            echo '  --inf_queue: infinite buffer for simulator'
+            echo '  --fin_queue: finite buffer for simulator'
+            echo 'default option is --enable-debug, --disable-multithreading and --inf_queue'
+            exit 0
+            ;;
     esac
 done
 
+rm -f Makefile
+
 if [[ $built_mode == 1 ]] ; then
-    gcc random.c -lm -o random
+    random='random'
+    debug=''
+    inf_queue=''
+    multithreading=''
 elif [[ $built_mode == 2 ]] ; then
+    random=''
     debug='DEBUG = -DDebug'
     inf_queue='INFQUEUE = -DinfQueue'
-elif [[ $built_mode == 5 ]] ; then 
+    multithreading=''
+elif [[ $built_mode == 5 ]] ; then
+    random=''
+    debug=''
+    inf_queue=''
     multithreading='MULTITHREADING = -Dmultithreading -lpthread'
 fi
 
-
-rm -f Makefile
 echo $debug > Makefile
 echo $inf_queue >> Makefile
 echo $multithreading >> Makefile
 cat Makefile.in >> Makefile
 
-
-make
+make $random

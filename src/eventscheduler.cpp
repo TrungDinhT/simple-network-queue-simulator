@@ -70,7 +70,7 @@ void EventScheduler::initDeparture(double simulationTime)
 
         serviceTime = arrival->packetSize()/C;
         
-        if(arrival->arrivalTime() + serviceTime >= latestDeparture + serviceTime)
+        if(arrival->arrivalTime() >= latestDeparture)
         {
             departureTime = arrival->arrivalTime() + serviceTime;
         }
