@@ -4,6 +4,10 @@
 // System include
 #include <iostream>
 
+// Network parameters
+#define L 12000
+#define C 1000000
+
 namespace lab1
 {
 
@@ -25,10 +29,11 @@ class Event
 {
 public:
     Event(EventType type, double t);
-    ~Event();
+    virtual ~Event();
     
     EventType   evtType() const;
     double      arrivalTime() const;
+    void        setArrivalTime(double t);
     
     virtual std::ostream& print(std::ostream& output);
 
@@ -60,7 +65,7 @@ public:
     double packetSize() const;
     PacketType type() const;
     
-    virtual std::ostream& print(std::ostream& output);
+    std::ostream& print(std::ostream& output) override;
 
 private:
     double     length;

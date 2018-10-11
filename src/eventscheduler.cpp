@@ -4,17 +4,7 @@
 
 // System includes
 #include <algorithm>
-
-// Total simulation time (in s)
-#define simulationTime 10000
-
-// Packet relevant parameters
-#define lambda rho*C/L
-#define L 12000
-#define C 1000000
-
-// Average observer per second
-#define alpha 4*lambda
+#include <climits>
 
 namespace lab1
 {
@@ -24,9 +14,7 @@ bool compareEvent (const Event* e1, const Event* e2)
     return e1->arrivalTime() > e2->arrivalTime();
 }
 
-EventScheduler::EventScheduler(double rho)
-  : rho(rho),
-    stats(simulationTime)
+EventScheduler::EventScheduler()
 {
 }
 
@@ -38,7 +26,7 @@ EventScheduler::~EventScheduler()
     }
 }
 
-void EventScheduler::initObserver()
+void EventScheduler::initObserver(double simulationTime, double alpha)
 {
     // First observer should not be at 0
     double arrivalTime = Random::getInstance().randValue(alpha);
@@ -51,10 +39,10 @@ void EventScheduler::initObserver()
         eventQueue.push_back(event);
         arrivalTime += Random::getInstance().randValue(alpha);
     }
-    while(arrivalTime < simulationTime);    
+    while(arrivalTime <= simulationTime);    
 }
 
-void EventScheduler::initArrival()
+void EventScheduler::initArrival(double simulationTime, double lambda)
 {
     double arrivalTime = 0;    
     Random::seedRand();
@@ -68,21 +56,21 @@ void EventScheduler::initArrival()
     while(arrivalTime < simulationTime);
 }
 
-void EventScheduler::initDeparture()
+void EventScheduler::initDeparture(double simulationTime)
 {
     unsigned long   arrivalPos = 0;
-    double          latestDeparture = 0, serviceTime;
+    double          latestDeparture = 0;
 
     Packet*         arrival = dynamic_cast<Packet*>(eventQueue[arrivalPos]);
     
     do
     {
         Packet* packet;
-        double  departureTime;
+        double  serviceTime, departureTime;
 
         serviceTime = arrival->packetSize()/C;
         
-        if(arrival->arrivalTime() + serviceTime >= latestDeparture + serviceTime)
+        if(arrival->arrivalTime() >= latestDeparture)
         {
             departureTime = arrival->arrivalTime() + serviceTime;
         }
@@ -91,10 +79,25 @@ void EventScheduler::initDeparture()
             departureTime = latestDeparture + serviceTime;
         }
         
-        packet = new Packet(Departure, departureTime, arrival->packetSize());
-        eventQueue.push_back(packet);
+        if(departureTime <= simulationTime)
+        {
+            packet = new Packet(Departure, departureTime, arrival->packetSize());            
+            latestDeparture = departureTime;
+        }
+        else
+        {
+            /* Here this packet depart after the simulation ends, so we will not count this packet among the arrival packets
+             * One way to do is to SET arrivalTime of arrival pakcets TO departureTime, which is > simulationTime. In addition, we don't
+             * modify latestDeparture.
+             * 
+             * Further analysis in stat.cpp will help us remove these packets out of our concerned packets.
+             */
+            arrival->setArrivalTime(departureTime);
+            packet = new Packet(Departure, departureTime, arrival->packetSize());
+        }
         
-        latestDeparture = departureTime;
+        eventQueue.push_back(packet);
+
         arrivalPos++;
         
         arrival = dynamic_cast<Packet*>(eventQueue[arrivalPos]);
@@ -102,32 +105,29 @@ void EventScheduler::initDeparture()
     while(arrival != nullptr);
 }
 
-void EventScheduler::init()
+void EventScheduler::init(double simulationTime, double rho)
 {
-    unsigned long firstArrivalPacketPosition;
+    initArrival(simulationTime, rho*C/L);
+    initObserver(simulationTime, 4*rho*C/L); //alpha = 4*lambda
 
-    initArrival();
-    initObserver();
-    initDeparture();
+    // Infinite queue
+#ifdef infQueue
+    initDeparture(simulationTime);
+#endif
     
     // Sort events following time order
     std::sort(eventQueue.begin(), eventQueue.end(), compareEvent);
 }
 
-void EventScheduler::getStats()
+const Stats& EventScheduler::getStats(unsigned long queueLength, double simulationTime)
 {
-    stats.process(eventQueue);
-    
-    std::cout << "******************************************************\n";
-    std::cout << "rho = " << rho << "\n";
-    std::cout << stats;
-    std::cout << "******************************************************\n";
-    std::cout << "\n";
+    stats.process(eventQueue, queueLength, simulationTime);
+    return stats;
 }
 
 std::ostream& operator<<(std::ostream& output, const EventScheduler* ES)
 {
-    for(int i = 0; i < ES->eventQueue.size(); i++)
+    for(unsigned i = 0; i < ES->eventQueue.size(); i++)
     {
         output << ES->eventQueue[i] << "\n";
     }

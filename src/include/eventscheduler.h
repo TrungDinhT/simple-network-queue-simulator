@@ -16,20 +16,20 @@ namespace lab1
 class EventScheduler
 {
 public:
-    EventScheduler(double rho);
+    EventScheduler();
     ~EventScheduler();
-        
-    void    initArrival();
-    void    initObserver();
-    void    initDeparture();
     
-    void    init();
-    void    getStats();
+    void         init(double simulationTime, double rho);
+    const Stats& getStats(unsigned long queueLength, double simulationTime);
 
 private:
-    double               rho;
-    Stats                stats;
-    std::vector<Event*>  eventQueue;
+    void         initArrival(double simulationTime, double lambda);
+    void         initObserver(double simulationTime, double alpha);
+    void         initDeparture(double simulationTime);    
+
+private:
+    Stats               stats;
+    std::vector<Event*> eventQueue;
     
     friend std::ostream& operator<<(std::ostream& output, const EventScheduler* ES);
 };
